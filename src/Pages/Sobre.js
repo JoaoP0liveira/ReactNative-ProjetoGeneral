@@ -1,68 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 
 export default function Sobre() {
   const [contatos, setContatos] = useState([]);
-  const [faqs, setFaq] = useState([]);
 
-  const listContact = () => {
-    // Função para buscar contatos do server
+  // Função para buscar contatos do servidor
+  const listContatos = () => {
     axios
-      .get("http://10.0.2.2:3000/contatos")
-      .then((response) => {
-        setContatos(response.data);
+      .get('http://10.0.2.2:3000/contatos')
+      .then((resposta) => {
+        setContatos(resposta.data);
       })
       .catch((error) => {
-        console.error("ERROR ao buscar contatos", error);
+        console.error("Erro ao buscar contatos", error);
       });
   };
 
-  const listFaq = () => {
-    // Função para buscar FAQs do server
+  // Função para excluir um contato
+  const deleteContato = (id) => {
     axios
-      .get("http://10.0.2.2:3000/faq")
-      .then((response) => {
-        setFaq(response.data);
+      .delete(`http://10.0.2.2:3000/contatos/${id}`)
+      .then(() => {
+        setContatos(contatos.filter((contato) => contato.id !== id));
+        Alert.alert("Sucesso", "Contato excluído com sucesso");
       })
       .catch((error) => {
-        console.error("ERROR ao buscar FAQs", error);
+        console.error("Erro ao excluir contato", error);
+        Alert.alert("Erro", "Não foi possível excluir");
       });
   };
 
-  // Usando o useEffect para buscar dados
+  // Use o useEffect para buscar dados
   useEffect(() => {
-    listFaq();
-    listContact();
+    listContatos();
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
+    <ScrollView>
+      <View style={styles.container}>
         <Text style={styles.title}>Lista de Contatos</Text>
         {contatos.length > 0 ? (
           contatos.map((contato, index) => (
-            <View key={index} style={styles.contactCard}>
-              <Text style={styles.contactName}>{contato.nome}</Text>
-              <Text style={styles.contactPhone}>{contato.tel}</Text>
+            <View key={index} style={styles.contatoItem}>
+              <Text style={styles.nome}>{contato.nome}</Text>
+              <Text style={styles.telefone}>{contato.telefone}</Text>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteContato(contato.id)}
+              >
+                <Text style={styles.deleteButtonText}>Excluir</Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
-          <Text style={styles.emptyText}>Nenhum contato disponível</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.title}>Lista de FAQ</Text>
-        {faqs.length > 0 ? (
-          faqs.map((faq, index) => (
-            <View key={index} style={styles.faqCard}>
-              <Text style={styles.faqQuestion}>{faq.pergunta}</Text>
-              <Text style={styles.faqAnswer}>{faq.resposta}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>Nenhum FAQ disponível</Text>
+          <Text style={styles.noContacts}>Nenhum contato disponível</Text>
         )}
       </View>
     </ScrollView>
@@ -71,65 +63,54 @@ export default function Sobre() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 16,
-  },
-  section: {
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  contactCard: {
-    backgroundColor: "#fff",
+  contatoItem: {
+    backgroundColor: '#fff',
     padding: 15,
+    marginBottom: 15,
     borderRadius: 8,
-    marginBottom: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  contactName: {
+  nome: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
   },
-  contactPhone: {
+  telefone: {
     fontSize: 16,
-    color: "#666",
-    marginTop: 5,
+    color: '#555',
+    marginVertical: 5,
   },
-  faqCard: {
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 5,
-  },
-  faqQuestion: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  faqAnswer: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 5,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
+  deleteButton: {
     marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#007BFF', // Cor azul
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  noContacts: {
+    fontSize: 16,
+    color: 'gray',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
